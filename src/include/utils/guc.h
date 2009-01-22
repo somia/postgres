@@ -182,6 +182,8 @@ extern int	tcp_keepalives_idle;
 extern int	tcp_keepalives_interval;
 extern int	tcp_keepalives_count;
 
+extern double log_duration_sample;
+
 extern void SetConfigOption(const char *name, const char *value,
 				GucContext context, GucSource source);
 

@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <byteswap.h>
+#include <endian.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -2042,6 +2045,8 @@ check_log_statement(List *stmt_list)
 int
 check_log_duration(char *msec_str, bool was_logged)
 {
+	int retval = 0;
+
 	if (log_duration || log_min_duration_statement >= 0)
 	{
 		long		secs;
@@ -2069,13 +2074,32 @@ check_log_duration(char *msec_str, bool was_logged)
 			snprintf(msec_str, 32, "%ld.%03d",
 					 secs * 1000 + msecs, usecs % 1000);
 			if (exceeded && !was_logged)
-				return 2;
+				retval = 2;
 			else
-				return 1;
+				retval = 1;
+		}
+
+		if (retval > 0 && log_duration_sample < 1.0)
+		{
+			static uint64_t seed;
+
+			if (seed == 0)
+			{
+				struct timeval tv;
+
+				gettimeofday(&tv, NULL);
+				seed = (uint64_t) tv.tv_sec * 1000000 + tv.tv_usec;
+#if BYTE_ORDER != LITTLE_ENDIAN
+				bswap_64(seed);
+#endif
+			}
+
+			if (erand48((unsigned short *) &seed) > log_duration_sample)
+				retval = 0;
 		}
 	}
 
-	return 0;
+	return retval;
 }
 
 /*

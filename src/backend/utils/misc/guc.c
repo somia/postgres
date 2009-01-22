@@ -382,6 +382,8 @@ int			tcp_keepalives_idle;
 int			tcp_keepalives_interval;
 int			tcp_keepalives_count;
 
+double		log_duration_sample = 1.0;
+
 /*
  * These variables are all dummies that don't do anything, except in some
  * cases provide the value for SHOW to display.  The real state is elsewhere
@@ -2081,6 +2083,16 @@ static struct config_real ConfigureNamesReal[] =
 		},
 		&CheckPointCompletionTarget,
 		0.5, 0.0, 1.0, NULL, NULL
+	},
+
+	{
+		{"log_duration_sample", PGC_SUSET, LOGGING_WHEN,
+			gettext_noop("Sets the sampling frequency (probability) used for "
+						 "logging statement durations."),
+			gettext_noop("1.0 prints all queries.")
+		},
+		&log_duration_sample,
+		1.0, 0.0, 1.0, NULL, NULL
 	},
 
 	/* End-of-list marker */
