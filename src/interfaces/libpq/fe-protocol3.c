@@ -1940,6 +1940,24 @@ build_startup_packet(const PGconn *conn, char *packet,
 		}
 	}
 
+	{
+		const char *set = getenv("PGSETCLIENTPID");
+		const char *host = conn->pghost ? conn->pghost : "localhost";
+		char buf[12];
+
+		if (set && (strcmp(set, "yes") == 0 || (strncmp(set, "host:", 5) == 0 && strcmp(set + 5, host) == 0)))
+		{
+			snprintf(buf, sizeof (buf), "%u", getpid());
+
+			if (packet)
+				strcpy(packet + packet_len, "client_pid");
+			packet_len += strlen("client_pid") + 1;
+			if (packet)
+				strcpy(packet + packet_len, buf);
+			packet_len += strlen(buf) + 1;
+		}
+	}
+
 	/* Add trailing terminator */
 	if (packet)
 		packet[packet_len] = '\0';
