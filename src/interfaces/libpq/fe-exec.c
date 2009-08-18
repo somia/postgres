@@ -1529,6 +1529,8 @@ PQgetResult(PGconn *conn)
 	if (!conn)
 		return NULL;
 
+	pqtraceio_set_active(&conn->trace);
+
 	/* Parse any available data, if our state permits. */
 	parseInput(conn);
 
@@ -1561,7 +1563,8 @@ PQgetResult(PGconn *conn)
 			 */
 			pqSaveErrorResult(conn);
 			conn->asyncStatus = PGASYNC_IDLE;
-			return pqPrepareAsyncResult(conn);
+			res = pqPrepareAsyncResult(conn);
+			goto out;
 		}
 
 		/* Parse it. */
@@ -1622,6 +1625,9 @@ PQgetResult(PGconn *conn)
 			res->events[i].resultInitialized = TRUE;
 		}
 	}
+
+out:
+	pqtraceio_clear_active(&conn->trace);
 
 	return res;
 }

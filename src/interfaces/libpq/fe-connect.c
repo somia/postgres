@@ -1910,6 +1910,26 @@ error_return:
 }
 
 
+PQTraceIO *pqtraceio_active;
+
+static void pqtraceio_signal_handler(int signum)
+{
+	pqtraceio_dump_active();
+	abort();
+}
+
+static void pqtraceio_signal_init(void)
+{
+	static bool done;
+
+	if (done)
+		return;
+
+	signal(SIGUSR1, pqtraceio_signal_handler);
+	done = true;
+}
+
+
 /*
  * makeEmptyPGconn
  *	 - create a PGconn data structure with (as yet) no interesting data
@@ -1988,6 +2008,9 @@ makeEmptyPGconn(void)
 		freePGconn(conn);
 		conn = NULL;
 	}
+
+	pqtraceio_init(&conn->trace);
+	pqtraceio_signal_init();
 
 	return conn;
 }

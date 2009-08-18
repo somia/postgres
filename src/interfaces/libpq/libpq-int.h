@@ -83,6 +83,8 @@ typedef struct
 
 #endif /* USE_SSL */
 
+#include "tracebuf.h"
+
 /*
  * POSTGRES backend dependent Constants.
  */
@@ -423,6 +425,8 @@ struct pg_conn
 
 	/* Buffer for receiving various parts of messages */
 	PQExpBufferData workBuffer; /* expansible string */
+
+	PQTraceIO trace;
 };
 
 /* PGcancel stores all data necessary to cancel a connection. A copy of this

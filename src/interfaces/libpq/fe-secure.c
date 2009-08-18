@@ -355,6 +355,9 @@ rloop:
 #endif
 		n = recv(conn->sock, ptr, len, 0);
 
+	if (n > 0)
+		pqtracebuf_append(&conn->trace.recv, ptr, n);
+
 	return n;
 }
 
@@ -441,6 +444,9 @@ pqsecure_write(PGconn *conn, const void *ptr, size_t len)
 	}
 
 	RESTORE_SIGPIPE();
+
+	if (n > 0)
+		pqtracebuf_append(&conn->trace.send, ptr, n);
 
 	return n;
 }
